@@ -11,7 +11,7 @@ const WellScreen = {
                 </div>
 
                 <div id="wellBtn" class="well-container" role="button" tabindex="0" aria-label="Набрать воду">
-                    <img src="/assets/images/objects/well.png" alt="Колодец" class="well-image" loading="lazy">
+                    <img src="assets/images/objects/well.png" alt="Колодец" class="well-image" loading="lazy">
                 </div>
 
                 <p class="well-hint">Нажимай на колодец, чтобы набрать воду</p>

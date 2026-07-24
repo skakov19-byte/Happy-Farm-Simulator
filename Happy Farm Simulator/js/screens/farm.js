@@ -45,7 +45,7 @@ const FarmScreen = {
             delete this.lastStage[index];
             return `
                 <div class="farm-cell plot empty" data-index="${index}">
-                    <img src="/assets/images/objects/plot-empty.png" alt="Грядка" class="plot-image" loading="lazy">
+                    <img src="assets/images/objects/plot-empty.png" alt="Грядка" class="plot-image" loading="lazy">
                 </div>
             `;
         }
@@ -68,11 +68,11 @@ const FarmScreen = {
         const popClass = this.lastStage[index] !== stageKey ? 'plant-pop' : '';
         this.lastStage[index] = stageKey;
 
-        const plantSrc = stage === 3 ? crop.readyImage : '/assets/images/plants/seedling.png';
+        const plantSrc = stage === 3 ? crop.readyImage : 'assets/images/plants/seedling.png';
 
         return `
             <div class="farm-cell plot stage-${stage} ${stateClass}" data-index="${index}">
-                <img src="/assets/images/objects/plot-empty.png" alt="Грядка" class="plot-image" loading="lazy">
+                <img src="assets/images/objects/plot-empty.png" alt="Грядка" class="plot-image" loading="lazy">
                 <img src="${plantSrc}" alt="${crop.name}" class="plant-image ${popClass}" loading="lazy">
                 ${!plot.ready ? `<span class="water-hint">${plot.clicksGiven}/${plot.clicksNeeded} 💧</span>` : ''}
             </div>

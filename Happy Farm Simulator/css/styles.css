@@ -117,15 +117,15 @@ button {
 }
 
 #screen-well {
-    background: url('/assets/images/backgrounds/well-bg.png') center/cover no-repeat;
+    background: url('../assets/images/backgrounds/well-bg.png') center/cover no-repeat;
 }
 
 #screen-farm {
-    background: url('/assets/images/backgrounds/farm-bg.png') center/cover no-repeat;
+    background: url('../assets/images/backgrounds/farm-bg.png') center/cover no-repeat;
 }
 
 #screen-market {
-    background: url('/assets/images/backgrounds/market-bg.png') center/cover no-repeat;
+    background: url('../assets/images/backgrounds/market-bg.png') center/cover no-repeat;
 }
 
 /* .screen-content раньше поднимала контент над отдельным SVG-слоем фона (z-index).

@@ -75,7 +75,7 @@ const MarketScreen = {
                             <span class="market-qty">×${qty}</span>
                         </span>
                         <span class="market-price">
-                            ${price} <img src="/assets/images/objects/coin.png" alt="монеты" class="coin-icon-inline" loading="lazy">
+                            ${price} <img src="assets/images/objects/coin.png" alt="монеты" class="coin-icon-inline" loading="lazy">
                             <span class="price-trend ${trend}">${trendIcon}</span>
                         </span>
                     </label>
@@ -178,7 +178,7 @@ const MarketScreen = {
                             <div class="upgrade-desc">${cfg.description}</div>
                         </div>
                         <button class="btn upgrade-buy" data-key="${key}" ${disabled ? 'disabled' : ''}>
-                            ${maxed ? 'Макс.' : `${cost} <img src="/assets/images/objects/coin.png" alt="монеты" class="coin-icon-inline">`}
+                            ${maxed ? 'Макс.' : `${cost} <img src="assets/images/objects/coin.png" alt="монеты" class="coin-icon-inline">`}
                         </button>
                     </div>
                 `;
