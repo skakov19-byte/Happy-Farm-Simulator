@@ -80,7 +80,7 @@ const Particles = {
     flyCoin(startX, startY, endX, endY, playDing) {
         const coin = document.createElement('div');
         coin.className = 'particle particle-coin';
-        coin.textContent = '🪙';
+        coin.innerHTML = '<img src="/assets/images/objects/coin.png" alt="" class="coin-icon-inline">';
 
         // изгиб параболы: контрольная точка выше и чуть в сторону от прямой линии
         const midX = (startX + endX) / 2 + (Math.random() * 50 - 25);

@@ -13,26 +13,23 @@ const Main = {
         this.renderHeader();
 
         WellScreen.render();
-        const grownWhileAway = FarmScreen.render();
+        FarmScreen.render();
         MarketScreen.render();
 
         this.showScreen('well');
 
-        this.reportOfflineProgress(offlineSeconds, grownWhileAway);
+        // Рост растений теперь идёт только от кликов полива, а не от времени,
+        // поэтому «пока вас не было» больше нечего досчитывать на ферме —
+        // просто приветствуем игрока, если отсутствие было заметным
+        this.reportOfflineProgress(offlineSeconds);
     },
 
-    // Показывает игроку, что произошло на ферме, пока его не было
-    reportOfflineProgress(offlineSeconds, grownCount) {
+    reportOfflineProgress(offlineSeconds) {
         if (offlineSeconds < 30) return; // не спамим тостом при обычной перезагрузке страницы
 
         const minutes = Math.floor(offlineSeconds / 60);
         const timeLabel = minutes > 0 ? `${minutes} мин` : `${Math.round(offlineSeconds)} сек`;
-
-        if (grownCount > 0) {
-            UI.showToast(`С возвращением! Вас не было ${timeLabel} — созрело растений: ${grownCount} 🌾`);
-        } else {
-            UI.showToast(`С возвращением! Вас не было ${timeLabel}`);
-        }
+        UI.showToast(`С возвращением! Вас не было ${timeLabel}`);
     },
 
     bindNav() {

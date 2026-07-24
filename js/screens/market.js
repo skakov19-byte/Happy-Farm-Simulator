@@ -10,7 +10,6 @@ const MarketScreen = {
     render() {
         const el = document.getElementById('screen-market');
         el.innerHTML = `
-            <div class="screen-bg">${SvgBackgrounds.market()}</div>
             <div class="market-wrap screen-content">
                 <div class="market-list" id="marketList"></div>
                 <div class="market-actions">
@@ -70,13 +69,13 @@ const MarketScreen = {
                 return `
                     <label class="market-item ${qty === 0 ? 'empty' : ''}">
                         <input type="checkbox" class="market-checkbox" data-crop="${key}" ${qty === 0 ? 'disabled' : ''} ${checked}>
-                        <span class="market-icon">${SvgGoods.render(key)}</span>
+                        <img src="${crop.readyImage}" alt="${crop.name}" class="market-icon" loading="lazy">
                         <span class="market-info">
                             <span class="market-name">${crop.name}</span>
                             <span class="market-qty">×${qty}</span>
                         </span>
                         <span class="market-price">
-                            ${price} 🪙
+                            ${price} <img src="/assets/images/objects/coin.png" alt="монеты" class="coin-icon-inline" loading="lazy">
                             <span class="price-trend ${trend}">${trendIcon}</span>
                         </span>
                     </label>
@@ -173,12 +172,13 @@ const MarketScreen = {
 
                 return `
                     <div class="upgrade-row">
+                        <img src="${cfg.image}" alt="${cfg.name}" class="upgrade-icon" loading="lazy">
                         <div class="upgrade-info">
-                            <div class="upgrade-name">${cfg.icon} ${cfg.name} <span class="upgrade-level">ур. ${level}</span></div>
+                            <div class="upgrade-name">${cfg.name} <span class="upgrade-level">ур. ${level}</span></div>
                             <div class="upgrade-desc">${cfg.description}</div>
                         </div>
                         <button class="btn upgrade-buy" data-key="${key}" ${disabled ? 'disabled' : ''}>
-                            ${maxed ? 'Макс.' : `${cost} 🪙`}
+                            ${maxed ? 'Макс.' : `${cost} <img src="/assets/images/objects/coin.png" alt="монеты" class="coin-icon-inline">`}
                         </button>
                     </div>
                 `;

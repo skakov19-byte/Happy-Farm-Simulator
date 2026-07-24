@@ -4,16 +4,15 @@ const WellScreen = {
     render() {
         const el = document.getElementById('screen-well');
         el.innerHTML = `
-            <div class="screen-bg">${SvgBackgrounds.well()}</div>
             <div class="well-wrap screen-content">
                 <div class="bucket-indicator">
                     <span class="bucket-icon">💧</span>
                     <span id="bucketValue">0 / 10</span>
                 </div>
 
-                <button id="wellBtn" class="well-btn" aria-label="Набрать воду">
-                    ${SvgWell.render()}
-                </button>
+                <div id="wellBtn" class="well-container" role="button" tabindex="0" aria-label="Набрать воду">
+                    <img src="/assets/images/objects/well.png" alt="Колодец" class="well-image" loading="lazy">
+                </div>
 
                 <p class="well-hint">Нажимай на колодец, чтобы набрать воду</p>
 
@@ -76,9 +75,9 @@ const WellScreen = {
 
     playSplashAnim() {
         const btn = document.getElementById('wellBtn');
-        btn.classList.remove('well-active');
+        btn.classList.remove('active');
         void btn.offsetWidth; // сброс анимации, чтобы она могла запуститься повторно
-        btn.classList.add('well-active');
+        btn.classList.add('active');
     },
 
     updateBucketDisplay() {

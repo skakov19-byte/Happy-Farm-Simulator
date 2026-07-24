@@ -1,16 +1,12 @@
 // screens/farm.js — Экран 2: Ферма (выращивание)
-
-const HARVEST_SHAKE_MS = 350; // должно совпадать с длительностью анимации .harvest-shake в CSS
-const SWAY_DURATION_MS = 2400; // должно совпадать с длительностью анимации sway в CSS
+// Рост управляется кликами полива, а не таймером: см. формулу в economy.js (Economy.CROPS)
 
 const FarmScreen = {
-    tickTimer: null,
     lastStage: {}, // index -> последняя показанная "культура-стадия", чтобы ловить смену для pop-анимации
 
     render() {
         const el = document.getElementById('screen-farm');
         el.innerHTML = `
-            <div class="screen-bg">${SvgBackgrounds.farm()}</div>
             <div class="farm-wrap screen-content">
                 <div class="farm-grid" id="farmGrid"></div>
                 <button id="harvestAllBtn" class="btn">${SvgBasket.render()} Собрать всё</button>
@@ -19,39 +15,6 @@ const FarmScreen = {
         document.getElementById('harvestAllBtn').addEventListener('click', () => FarmHarvest.harvestAll());
 
         this.renderGrid();
-        // Сразу досчитываем рост за время, пока игра была закрыта (не ждём первый тик раз в сек)
-        const grownWhileAway = this.tick();
-        this.startGrowthLoop();
-
-        return grownWhileAway;
-    },
-
-    // Раз в секунду проверяет, не выросли ли политые растения
-    startGrowthLoop() {
-        if (this.tickTimer) return;
-        this.tickTimer = setInterval(() => this.tick(), 1000);
-    },
-
-    // Возвращает число клеток, созревших за этот вызов (используется для оффлайн-прогресса)
-    tick() {
-        const plots = GameState.data.farm.plots;
-        let newlyReady = 0;
-
-        plots.forEach((plot) => {
-            if (plot && plot.watered && !plot.ready) {
-                const elapsed = (Date.now() - plot.wateredAt) / 1000;
-                if (elapsed >= plot.growTime) {
-                    plot.ready = true;
-                    newlyReady++;
-                }
-            }
-        });
-
-        if (Main.currentScreen === 'farm') {
-            this.renderGrid();
-        }
-
-        return newlyReady;
     },
 
     renderGrid() {
@@ -81,47 +44,37 @@ const FarmScreen = {
         if (!plot) {
             delete this.lastStage[index];
             return `
-                <div class="farm-cell empty" data-index="${index}">
-                    <svg viewBox="0 0 100 100" class="plot-illustration" xmlns="http://www.w3.org/2000/svg">${SvgPlot.frameMarkup()}</svg>
-                    <span class="plus-icon">➕</span>
+                <div class="farm-cell plot empty" data-index="${index}">
+                    <img src="/assets/images/objects/plot-empty.png" alt="Грядка" class="plot-image" loading="lazy">
                 </div>
             `;
         }
 
+        const crop = Economy.CROPS[plot.type];
         let stage;
         let stateClass;
 
-        if (!plot.watered) {
-            stage = 1;
-            stateClass = 'needs-water';
-        } else if (plot.ready) {
+        if (plot.ready) {
             stage = 3;
             stateClass = 'ready';
         } else {
-            const progress = (Date.now() - plot.wateredAt) / 1000 / plot.growTime;
+            const progress = plot.clicksGiven / plot.clicksNeeded;
             stage = progress < 0.5 ? 1 : 2;
-            stateClass = 'growing';
+            stateClass = plot.clicksGiven === 0 ? 'needs-water' : 'growing';
         }
 
-        // Плавный pop (scale + fade) только когда стадия реально сменилась — не на каждый тик
+        // Плавный pop (scale + fade) только когда стадия реально сменилась
         const stageKey = `${plot.type}-${stage}`;
-        const popClass = this.lastStage[index] !== stageKey ? 'emoji-pop' : '';
+        const popClass = this.lastStage[index] !== stageKey ? 'plant-pop' : '';
         this.lastStage[index] = stageKey;
 
-        // Покачивание синхронизируем с реальным временем через отрицательную задержку,
-        // чтобы фаза не «прыгала» при пересоздании DOM-узла на каждом тике
-        const swayDelay = -(Date.now() % SWAY_DURATION_MS);
-        const swayStyle = stateClass !== 'needs-water' ? `transform-origin:50px 85px;animation-delay:${swayDelay}ms` : 'transform-origin:50px 85px;';
+        const plantSrc = stage === 3 ? crop.readyImage : '/assets/images/plants/seedling.png';
 
         return `
-            <div class="farm-cell ${stateClass}" data-index="${index}">
-                <svg viewBox="0 0 100 100" class="plot-illustration" xmlns="http://www.w3.org/2000/svg">
-                    ${SvgPlot.frameMarkup()}
-                    <g class="crop-plant ${popClass}" style="${swayStyle}">
-                        ${SvgPlants.render(plot.type, stage)}
-                    </g>
-                </svg>
-                ${!plot.watered ? '<span class="water-hint">💧</span>' : ''}
+            <div class="farm-cell plot stage-${stage} ${stateClass}" data-index="${index}">
+                <img src="/assets/images/objects/plot-empty.png" alt="Грядка" class="plot-image" loading="lazy">
+                <img src="${plantSrc}" alt="${crop.name}" class="plant-image ${popClass}" loading="lazy">
+                ${!plot.ready ? `<span class="water-hint">${plot.clicksGiven}/${plot.clicksNeeded} 💧</span>` : ''}
             </div>
         `;
     },
@@ -136,15 +89,12 @@ const FarmScreen = {
             return;
         }
 
-        if (!plot.watered) {
-            this.waterPlot(index);
+        if (plot.ready) {
+            FarmHarvest.harvestOne(index);
             return;
         }
 
-        if (plot.ready) {
-            FarmHarvest.harvestOne(index);
-        }
-        // ещё растёт, но не полито заново — по клику ничего не делаем
+        this.waterPlot(index);
     },
 
     openPlantMenu(index) {
@@ -153,7 +103,7 @@ const FarmScreen = {
                 ([key, crop]) => `
                 <button class="btn plant-option" data-crop="${key}">
                     <span>${crop.sproutEmoji} ${crop.name}</span>
-                    <small>${crop.growTime} сек · ${crop.waterCost} 💧 · урожай ${crop.yieldAmount} шт</small>
+                    <small>${crop.clicksToGrow} поливов · ${crop.waterCost} 💧/полив · урожай ${crop.yieldAmount} шт</small>
                 </button>
             `
             )
@@ -173,25 +123,24 @@ const FarmScreen = {
         });
     },
 
-    // Сажает выбранную культуру в клетку (время роста уже учитывает уровень удобрения)
+    // Сажает выбранную культуру в клетку (число кликов до роста уже учитывает удобрение)
     plant(index, cropKey) {
         const state = GameState.data;
         const crop = Economy.CROPS[cropKey];
         const fertilizerLevel = state.upgrades.fertilizer;
-        const growTime = Math.max(5, Math.round(crop.growTime * Math.pow(0.9, fertilizerLevel)));
+        const clicksNeeded = Math.max(1, Math.round(crop.clicksToGrow * Math.pow(0.9, fertilizerLevel)));
 
         state.farm.plots[index] = {
             type: cropKey,
-            watered: false,
-            wateredAt: null,
-            ready: false,
-            growTime
+            clicksGiven: 0,
+            clicksNeeded,
+            ready: false
         };
 
         this.renderGrid();
     },
 
-    // Тратит воду из общего запаса и запускает таймер роста
+    // Один клик полива: тратит воду и продвигает рост на 1 клик из clicksNeeded
     waterPlot(index) {
         const state = GameState.data;
         const plot = state.farm.plots[index];
@@ -204,8 +153,10 @@ const FarmScreen = {
         }
 
         state.water -= waterCost;
-        plot.watered = true;
-        plot.wateredAt = Date.now();
+        plot.clicksGiven += 1;
+        if (plot.clicksGiven >= plot.clicksNeeded) {
+            plot.ready = true;
+        }
 
         Audio_.splash();
         Main.renderHeader();

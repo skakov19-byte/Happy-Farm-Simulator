@@ -68,6 +68,28 @@ button {
 
 .stat-icon {
     font-size: 20px;
+    display: inline-flex;
+    align-items: center;
+}
+
+.coin-icon {
+    width: 28px;
+    height: 28px;
+    object-fit: contain;
+    animation: coinSpin 3s infinite linear;
+}
+
+@keyframes coinSpin {
+    0%, 100% { transform: rotateY(0deg); }
+    50% { transform: rotateY(180deg); }
+}
+
+.coin-icon-inline {
+    width: 18px;
+    height: 18px;
+    object-fit: contain;
+    vertical-align: middle;
+    flex-shrink: 0;
 }
 
 /* ===== Экраны ===== */
@@ -94,23 +116,21 @@ button {
     display: block;
 }
 
-.screen-bg {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 0;
-    pointer-events: none;
+#screen-well {
+    background: url('/assets/images/backgrounds/well-bg.png') center/cover no-repeat;
 }
 
-.screen-bg svg {
-    display: block;
+#screen-farm {
+    background: url('/assets/images/backgrounds/farm-bg.png') center/cover no-repeat;
 }
 
-.screen-content {
-    position: relative;
-    z-index: 1;
+#screen-market {
+    background: url('/assets/images/backgrounds/market-bg.png') center/cover no-repeat;
 }
+
+/* .screen-content раньше поднимала контент над отдельным SVG-слоем фона (z-index).
+   Теперь фон задаётся через CSS background прямо на .screen, лишний стековый
+   контекст (position+z-index) больше не нужен — класс оставлен пустым. */
 
 /* ===== Нижняя навигация ===== */
 #nav {
@@ -295,7 +315,6 @@ button {
     top: 0;
     left: 0;
     margin: -10px 0 0 -10px;
-    font-size: 18px;
     offset-rotate: 0deg;
     animation: coinFly 600ms ease-in forwards;
 }
@@ -392,11 +411,13 @@ button {
 
 /* ===== Экран «Колодец» ===== */
 .well-wrap {
+    position: relative;
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 20px;
     padding-top: 12px;
+    min-height: 780px; /* даёт колодцу внизу место, чтобы не наезжать на кнопки сверху */
 }
 
 .bucket-indicator {
@@ -410,39 +431,55 @@ button {
     box-shadow: var(--shadow);
     font-size: 18px;
     font-weight: 700;
+    z-index: 1;
 }
 
 .bucket-icon {
     font-size: 22px;
 }
 
-.well-btn {
-    position: relative;
-    width: 200px;
-    height: 300px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: transform 0.15s ease-out;
+/* Колодец увеличен (~5x исходного) и «стоит» на земле внизу экрана,
+   а не парит посередине — привязан к нижнему краю well-wrap.
+   Само изображение альбомное (1664x928) с большими пустыми полями по бокам,
+   поэтому используем object-fit:cover в портретном контейнере — это обрезает
+   пустые поля и визуально «приближает» колодец, а не сжимает его в узкую полоску */
+.well-container {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    width: min(90%, 520px);
+    height: 500px;
+    cursor: pointer;
+    transform: translateX(-50%);
+    transition: transform 0.2s ease-out;
 }
 
-.well-btn svg {
-    display: block;
-    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.15));
+@media (hover: hover) {
+    .well-container:hover {
+        transform: translateX(-50%) scale(1.05);
+    }
 }
 
-.well-btn:active {
-    transform: scale(0.97);
+.well-container:active {
+    transform: translateX(-50%) scale(0.95);
+}
+
+.well-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    filter: drop-shadow(0 10px 16px rgba(0, 0, 0, 0.25));
 }
 
 /* Ведро на клике «опускается» в колодец и возвращается обратно */
-.well-active .well-bucket-group {
+.well-container.active .well-image {
     animation: wellPump 0.5s ease-out;
 }
 
 @keyframes wellPump {
     0% { transform: translateY(0); }
-    50% { transform: translateY(28px); }
+    50% { transform: translateY(10px); }
     100% { transform: translateY(0); }
 }
 
@@ -468,14 +505,18 @@ button {
 .farm-wrap {
     display: flex;
     flex-direction: column;
+    align-items: center;
     gap: 16px;
-    padding-top: 8px;
+    padding-top: 170px; /* сдвигаем сетку ещё ниже, туда где на фоне вспаханная земля, а не небо/забор */
 }
 
 .farm-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+    width: 100%;
+    max-width: 340px; /* компактнее и кучнее, по центру видимой грядки на фоне */
+    margin: 0 auto;
 }
 
 .farm-cell {
@@ -495,12 +536,73 @@ button {
     transform: scale(0.95);
 }
 
-.plot-illustration {
+.plot-image {
+    width: 80%;
+    height: 80%;
+    margin: auto;
+    object-fit: contain;
+}
+
+/* Растение центрируем на самой картинке грядки (чуть выше центра клетки),
+   а не у нижнего края — так оно выглядит растущим прямо из грядки, а не под ней */
+.plant-image {
     position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    display: block;
+    top: 42%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 60%;
+    height: 60%;
+    object-fit: contain;
+    transition: width 0.3s ease-out, height 0.3s ease-out, opacity 0.3s ease-out;
+}
+
+/* Стадии роста: размер и прозрачность растения растут вместе с ним */
+.farm-cell.stage-1 .plant-image {
+    width: 30%;
+    height: 30%;
+    opacity: 0.7;
+}
+
+.farm-cell.stage-2 .plant-image {
+    width: 50%;
+    height: 50%;
+    opacity: 0.9;
+}
+
+.farm-cell.stage-3 .plant-image {
+    width: 70%;
+    height: 70%;
+    opacity: 1;
+    animation: plantBounce 1s infinite;
+}
+
+@keyframes plantBounce {
+    0%, 100% { transform: translate(-50%, -50%); }
+    50% { transform: translate(-50%, calc(-50% - 5px)); }
+}
+
+/* Плавное появление при смене стадии роста (перебивает bounce на время своего проигрыша) */
+.plant-image.plant-pop {
+    animation: plantPop 300ms ease-out;
+}
+
+@keyframes plantPop {
+    0% { transform: translate(-50%, -50%) scale(0.4); opacity: 0; }
+    60% { transform: translate(-50%, -50%) scale(1.15); }
+    100% { transform: translate(-50%, -50%) scale(1); }
+}
+
+/* Встряска клетки в момент сбора урожая (плод падает отдельной частицей) */
+.farm-cell.harvest-shake .plant-image {
+    animation: harvestShake 350ms ease-in-out;
+}
+
+@keyframes harvestShake {
+    0%, 100% { transform: translate(-50%, -50%) rotate(0); }
+    20% { transform: translate(-50%, -50%) rotate(-6deg); }
+    40% { transform: translate(-50%, -50%) rotate(6deg); }
+    60% { transform: translate(-50%, -50%) rotate(-4deg); }
+    80% { transform: translate(-50%, -50%) rotate(4deg); }
 }
 
 .farm-cell.locked {
@@ -517,14 +619,6 @@ button {
 .farm-cell.empty {
     border: 2px dashed var(--color-green);
     box-shadow: none;
-}
-
-.farm-cell.empty .plus-icon {
-    position: relative;
-    color: #DCEDC8;
-    opacity: 0.85;
-    font-size: 26px;
-    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
 }
 
 .farm-cell.needs-water {
@@ -544,43 +638,15 @@ button {
     position: absolute;
     top: 4px;
     right: 4px;
-    font-size: 14px;
     z-index: 1;
-}
-
-/* Лёгкое покачивание растущих и готовых растений */
-.farm-cell.growing .crop-plant,
-.farm-cell.ready .crop-plant {
-    animation: sway 2.4s ease-in-out infinite;
-}
-
-@keyframes sway {
-    0%, 100% { transform: rotate(-4deg); }
-    50% { transform: rotate(4deg); }
-}
-
-/* Плавное появление при смене стадии роста (перебивает sway на время своего проигрыша) */
-.crop-plant.emoji-pop {
-    animation: emojiPop 300ms ease-out;
-}
-
-@keyframes emojiPop {
-    0% { transform: scale(0.4); opacity: 0; }
-    60% { transform: scale(1.15); opacity: 1; }
-    100% { transform: scale(1); opacity: 1; }
-}
-
-/* Встряска клетки в момент сбора урожая (плод падает отдельной частицей) */
-.farm-cell.harvest-shake .crop-plant {
-    animation: harvestShake 350ms ease-in-out;
-}
-
-@keyframes harvestShake {
-    0%, 100% { transform: translateX(0) rotate(0); }
-    20% { transform: translateX(-4px) rotate(-6deg); }
-    40% { transform: translateX(4px) rotate(6deg); }
-    60% { transform: translateX(-3px) rotate(-4deg); }
-    80% { transform: translateX(3px) rotate(4deg); }
+    background: rgba(255, 255, 255, 0.85);
+    color: var(--color-text);
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 1;
+    padding: 3px 5px;
+    border-radius: 8px;
+    white-space: nowrap;
 }
 
 @keyframes readyPulse {
@@ -652,12 +718,7 @@ button {
     flex-shrink: 0;
     width: 40px;
     height: 40px;
-}
-
-.good-icon {
-    display: block;
-    width: 100%;
-    height: 100%;
+    object-fit: contain;
 }
 
 .market-info {
@@ -720,6 +781,13 @@ button {
     background: var(--color-bg);
     border-radius: var(--radius);
     padding: 10px 12px;
+}
+
+.upgrade-icon {
+    flex-shrink: 0;
+    width: 60px;
+    height: 60px;
+    object-fit: contain;
 }
 
 .upgrade-info {

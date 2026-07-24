@@ -14,7 +14,7 @@ function createDefaultState() {
         },
         farm: {
             unlockedPlots: Economy.START_PLOTS,
-            // null — пустая клетка, иначе { type, stage, waterGiven, plantedAt, growTime }
+            // null — пустая клетка, иначе { type, clicksGiven, clicksNeeded, ready }
             plots: new Array(Economy.MAX_PLOTS).fill(null)
         },
         inventory: {
@@ -79,6 +79,12 @@ const GameState = {
             Economy.MAX_PLOTS,
             Economy.START_PLOTS + this.data.upgrades.plot
         );
+
+        // На случай старых сохранений: если MAX_PLOTS увеличили после релиза,
+        // молча дополняем массив пустыми клетками (никогда не обрезаем — не теряем посаженное)
+        while (this.data.farm.plots.length < Economy.MAX_PLOTS) {
+            this.data.farm.plots.push(null);
+        }
     },
 
     // Читает сохранение из localStorage. Возвращает null, если сохранения нет или оно повреждено
